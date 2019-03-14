@@ -8,7 +8,8 @@ app = Flask(__name__)
 
 db = []
 
-cred = credentials.Certificate('firebase_private_key.json')
+#Configuration snippet on firebase
+cred = credentials.Certificate('privateKey/firebase_private_key.json')
 firebase_app = firebase_admin.initialize_app(cred)
 
 # This function is a decorator
