@@ -48,7 +48,10 @@ def exercises():
         body = request.get_json()
         exercises = workout_db['exercises']
         exercise = {
-            #"sets": [body["reps"], body["weights"]],
+            "sets": {
+                "reps": body["sets"]["reps"],
+                "weights": body["sets"]["weights"]
+                },
             "name": body["name"],
             "templateID": body["templateID"],
             "created": str(datetime.datetime.now())
