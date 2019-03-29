@@ -13,7 +13,7 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 client = MongoClient('localhost', 27017)
-
+#client = MongoClient('')
 workout_db = client['workout-db']
 
 def check_credentials(username, password):
