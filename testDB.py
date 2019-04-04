@@ -17,7 +17,7 @@ client = MongoClient('localhost', 27017)
 workout_db = client['workout-db']
 
 def check_credentials(username, password):
-    users_coll = blog_db['users']
+    users_coll = workout_db['users']
     user = users_coll.find_one({"username": username})
     if user is None:
         return False
@@ -39,6 +39,29 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+#creates a user, assigns unique ID during mongodb creation
+@app.route("/users", methods=["POST"])
+def users():
+    if request.method == 'POST':
+        body = request.get_json()
+        users = workout_db['users']
+        user = {
+            "username": body["username"]
+        }
+        users.insert_one(user)
+        return "User: " + user["username"] + " was added."
+
+#returns what User, passes in userid in route
+@app.route("/users/<userid>", methods=["GET"])
+def get_users(userid):
+    if request.method == 'GET':
+        users_coll = workout_db['users']
+        return Response(JSONEncoder().encode(users_coll.find_one({"_id": ObjectId(userid)})), mimetype='application/json')
+
+#POSTS's an exercise by passing in JSON body
+#GET's exercise when passing in exercise name in JSON body
+#DELETE's exercise when passing in exercise name in JSON body.
+#TODO: ???
 @app.route("/exercises", methods=["POST", "GET","DELETE"])
 def exercises():
     if request.method == 'GET':
@@ -66,6 +89,16 @@ def exercises():
         }
         exercises.delete_one(deleteExercise)
         return "Deleted " + body["name"] + "."
+
+
+@app.route("/logs/<date>", methods=["GET"])
+def single_date(date):
+    logs = workout_db['logs']
+    return Response(JSONEncoder().encode(list(logs_coll.find())), mimetype='application/json')
+
+#TODO: ask, would final route be /users/<userid>/logs/<date/logsid>/exercises
+#or would it just simply be the user is logged in so it's just: /logs/<date/logsid>/exercises
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT",5000))
