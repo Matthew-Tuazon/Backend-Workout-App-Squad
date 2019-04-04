@@ -93,7 +93,7 @@ def exercises():
 
 @app.route("/logs/<date>", methods=["GET"])
 def single_date(date):
-    logs = workout_db['logs']
+    logs_coll = workout_db['logs']
     return Response(JSONEncoder().encode(list(logs_coll.find())), mimetype='application/json')
 
 #TODO: ask, would final route be /users/<userid>/logs/<date/logsid>/exercises

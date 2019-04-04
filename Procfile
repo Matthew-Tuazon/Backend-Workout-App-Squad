@@ -1,1 +1,1 @@
-web: python testDB.py 
+web: gunicorn testDB:app
