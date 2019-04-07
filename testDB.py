@@ -4,6 +4,8 @@ import json
 from pymongo import MongoClient
 from bson import ObjectId
 import datetime
+import os
+
 app = Flask(__name__)
 
 class JSONEncoder(json.JSONEncoder):
@@ -12,8 +14,11 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
-client = MongoClient('localhost', 27017)
-#client = MongoClient('')
+#client = MongoClient('localhost', 27017)
+
+#client = MongoClient('mongodb+srv://MattTuazon:'+ os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-l4tr0.mongodb.net/test?retryWrites=true')
+client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
+
 workout_db = client['workout-db']
 
 def check_credentials(username, password):
@@ -38,6 +43,10 @@ def requires_auth(f):
             return "invalid"
         return f(*args, **kwargs)
     return decorated
+
+@app.route("/")
+def hello():
+    return "Hello World!"
 
 #creates a user, assigns unique ID during mongodb creation
 @app.route("/users", methods=["POST"])
@@ -101,5 +110,6 @@ def single_date(date):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT",5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run()
+    #port = int(os.environ.get("PORT",5000))
+   # app.run(host='0.0.0.0', port=port)
