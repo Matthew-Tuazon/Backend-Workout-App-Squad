@@ -3,6 +3,7 @@ from functools import wraps
 import json
 from pymongo import MongoClient
 from bson import ObjectId
+from bson.json_util import loads, dumps
 import datetime
 import os
 
@@ -16,7 +17,6 @@ class JSONEncoder(json.JSONEncoder):
 
 #client = MongoClient('localhost', 27017)
 
-#client = MongoClient('mongodb+srv://MattTuazon:'+ os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-l4tr0.mongodb.net/test?retryWrites=true')
 client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
 
 workout_db = client['workout-db']
@@ -75,6 +75,7 @@ def get_users(userid):
 def exercises():
     if request.method == 'GET':
         exercises_coll = workout_db['exercises']
+        #print(dumps((exercises_coll.find({}))))
         return Response(JSONEncoder().encode(list(exercises_coll.find())), mimetype='application/json')
     elif request.method == 'POST':
         body = request.get_json()
