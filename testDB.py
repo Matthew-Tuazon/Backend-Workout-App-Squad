@@ -83,16 +83,18 @@ def exercises():
         body = request.get_json()
         exercises = workout_db['exercises']
         exercise = {
-            "sets": {
+            "sets": [{
                 "reps": body["sets"]["reps"],
                 "weights": body["sets"]["weights"]
-                },
+                }],
             "name": body["name"],
-            "templateID": body["templateID"],
+            #for now, templateID == name
+            "templateID": body["name"],
             "created": str(datetime.datetime.now())
         }
         exercises.insert_one(exercise)
         return "Done."
+    #request method is DELETE
     else:
         body = request.get_json()
         exercises = workout_db['exercises']
@@ -102,40 +104,55 @@ def exercises():
         exercises.delete_one(deleteExercise)
         return "Deleted " + body["name"] + "."
 
-#posts exercise logs for a specific user
-@app.route("/users/<userid>/logs", methods=["POST"])
-def post_logs(userid):
+#POST specific exercise for a specific user log: provides date, userid, and exercise object
+@app.route("/users/<userid>/logs/<exercise>", methods=["POST"])
+def post_logs(userid, exercise):
     if request.method == 'POST':
         users_coll = workout_db['users']
-        #logs_coll = workout_db['logs']
+        exercises_coll = workout_db['exercises']
+
+        #returns json format of exercise, this way we can get unique id for exercise
+        exercise_json = (exercises_coll.find_one({"name": (exercise)}))
+        exercise_id = exercise_json["_id"]
+
+        #exercise_name = exercise_json["name"]
+        #print("exercise name is: " + exercise_name + ".")
+
 
         user_id = users_coll.find_one({"_id": ObjectId(userid)})
+        exercise_object = exercises_coll.find_one({"_id": ObjectId(exercise_id)})
+
         if user_id is None:
             return "userid: " + userid + " is not in database."
-
-        #if userid is in database, continue
+        if exercise_object is None:
+            return "exercise: " + exercise_object + " is not in database."
+        
+        #if user_id/exercise_object is in database, continue
         body = request.get_json()
         logs = workout_db['logs']
         log = {
-            "date": body["date"],
-            "userid": userid
+            "_date": body["date"],
+            "_userid": userid,
+            "_exercise": exercise_object
         }
         logs.insert_one(log)
-        return "Done. User is: " + userid + ". Log was added for date: " + log["date"] + "."
+        return "Done. User is: " + userid + ". Log was added for date: " + log["_date"] + "."
 
 
-#Returns logs for specific date for a specific user
-@app.route("/users/<userid>/logs/<date>", methods=["GET", "POST"])
+#GET/Returns logs for specific user for a specific date
+@app.route("/users/<userid>/logs/<date>", methods=["GET"])
 def get_logs(userid, date):
     if request.method == 'GET':
-        users_coll = workout_db['users']
+        #users_coll = workout_db['users']
         logs_coll = workout_db['logs']
 
         #finds userid using unique _id and matches with userid passed in route
         #finds matching log date using date and matches with date passed in route
-        userid = users_coll.find_one({"_id": ObjectId(userid)})
-        date = logs_coll.find_one({"_date": date, "_userid": userid})
-        print("userid is: " + userid + " with date: " + date + ".")
+        #use_userid = users_coll.find_one({"_id": ObjectId(userid)})
+        #date = logs_coll.find_one({"_date": date, "_userid": userid})
+        #print("userid is: " + userid + " with date: " + date + ".")
+
+        return Response(JSONEncoder().encode(list(logs_coll.find({"_userid": userid, "_date": date}))), mimetype='application/json')
 
 @app.route("/logs/<date>", methods=["GET"])
 def single_date(date):
