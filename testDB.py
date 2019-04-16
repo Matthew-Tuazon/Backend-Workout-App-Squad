@@ -15,9 +15,11 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
-#client = MongoClient('localhost', 27017)
+#make changes to local database, uncomment when testing locally
+client = MongoClient('localhost', 27017)
 
-client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
+#makes changes to actual database, uncomment when using Heroku
+#client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
 
 workout_db = client['workout-db']
 
@@ -100,6 +102,40 @@ def exercises():
         exercises.delete_one(deleteExercise)
         return "Deleted " + body["name"] + "."
 
+#posts exercise logs for a specific user
+@app.route("/users/<userid>/logs", methods=["POST"])
+def post_logs(userid):
+    if request.method == 'POST':
+        users_coll = workout_db['users']
+        #logs_coll = workout_db['logs']
+
+        user_id = users_coll.find_one({"_id": ObjectId(userid)})
+        if user_id is None:
+            return "userid: " + userid + " is not in database."
+
+        #if userid is in database, continue
+        body = request.get_json()
+        logs = workout_db['logs']
+        log = {
+            "date": body["date"],
+            "userid": userid
+        }
+        logs.insert_one(log)
+        return "Done. User is: " + userid + ". Log was added for date: " + log["date"] + "."
+
+
+#Returns logs for specific date for a specific user
+@app.route("/users/<userid>/logs/<date>", methods=["GET", "POST"])
+def get_logs(userid, date):
+    if request.method == 'GET':
+        users_coll = workout_db['users']
+        logs_coll = workout_db['logs']
+
+        #finds userid using unique _id and matches with userid passed in route
+        #finds matching log date using date and matches with date passed in route
+        userid = users_coll.find_one({"_id": ObjectId(userid)})
+        date = logs_coll.find_one({"_date": date, "_userid": userid})
+        print("userid is: " + userid + " with date: " + date + ".")
 
 @app.route("/logs/<date>", methods=["GET"])
 def single_date(date):
