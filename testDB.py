@@ -82,16 +82,15 @@ def exercises():
     elif request.method == 'POST':
         body = request.get_json()
         exercises = workout_db['exercises']
+
         exercise = {
-            "sets": [{
-                "reps": body["sets"]["reps"],
-                "weights": body["sets"]["weights"]
-                }],
+            "sets": body["sets"],
             "name": body["name"],
             #for now, templateID == name
             "templateID": body["name"],
             "created": str(datetime.datetime.now())
         }
+
         exercises.insert_one(exercise)
         return "Done."
     #request method is DELETE
