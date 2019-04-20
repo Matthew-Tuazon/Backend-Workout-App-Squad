@@ -158,7 +158,7 @@ def delete_exercise(userid, date):
     if request.method == 'POST':
         body = request.get_json()
         logs_coll = workout_db['logs']
-        logs_coll.remove({"_userid": userid, "_date": date, "_exercise.name": body["name"]})
+        logs_coll.remove({"_userid": userid, "_date": date, "_exercise._id": body["id"]})
         return "Deleted " + body["name"] + "."
 
 #TODO: ask, would final route be /users/<userid>/logs/<date/logsid>/exercises
