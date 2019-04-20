@@ -16,10 +16,10 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 #make changes to local database, uncomment when testing locally
-client = MongoClient('localhost', 27017)
+#client = MongoClient('localhost', 27017)
 
 #makes changes to actual database, uncomment when using Heroku
-#client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
+client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
 
 workout_db = client['workout-db']
 
@@ -152,7 +152,7 @@ def get_logs(userid, date):
 
 #POST is technically a DELETE route, but Android has problems with DELETE. 
 #deletes exercise for specific user at specific log date, takes in exercise "name" as body.
-#i know route sucks, do if to check if exercise exists
+#i know route naming sux, not sure what do for now
 @app.route("/users/<userid>/logs/<date>/delete_exercise", methods=["POST"])
 def delete_exercise(userid, date):
     if request.method == 'POST':
