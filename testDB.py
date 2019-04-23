@@ -89,7 +89,7 @@ def exercises():
             "sets": body["sets"],
             "name": body["name"],
             #for now, templateID == name
-            "templateID": body["templateid"],
+            "templateID": body["name"],
             "created": str(datetime.datetime.now())
         }
 
@@ -97,7 +97,7 @@ def exercises():
         return "Done."
 
     #if request method was DELETE (changed to POST route since Android had complications)
-    '''
+    
     else:
         body = request.get_json()
         exercises = workout_db['exercises']
@@ -106,7 +106,7 @@ def exercises():
         }
         exercises.delete_one(deleteExercise)
         return "Deleted " + body["name"] + "."
-    '''
+    
     
 #if wanted to make POST/GET exercise routes specific to users
 '''
@@ -207,7 +207,7 @@ def delete_exercise(userid, date):
         
         #makes for pretty response message
         exercise_name = exercise_json['_exercise']['name']
-        logs_coll.remove({"_userid": userid, "_date": date, "_id": ObjectId(body["id"])})
+        logs_coll.remove({"_userid": userid, "_date": date, "_id": ObjectId(body["_id"])})
         return "Deleted " + exercise_name  + "."
 
 #TODO: ask, would final route be /users/<userid>/logs/<date/logsid>/exercises
