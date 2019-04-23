@@ -16,10 +16,10 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 #make changes to local database, uncomment when testing locally
-#client = MongoClient('localhost', 27017)
+client = MongoClient('localhost', 27017)
 
 #makes changes to actual database, uncomment when using Heroku
-client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
+#client = MongoClient('mongodb://MattTuazon:' + os.environ.get('ATLAS_PASSWORD') + '@workoutappsquad-shard-00-00-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-01-l4tr0.mongodb.net:27017,workoutappsquad-shard-00-02-l4tr0.mongodb.net:27017/test?ssl=true&replicaSet=WorkoutAppSquad-shard-0&authSource=admin&retryWrites=true')
 
 workout_db = client['workout-db']
 
@@ -70,10 +70,11 @@ def get_users(userid):
         users_coll = workout_db['users']
         return Response(JSONEncoder().encode(users_coll.find_one({"_id": ObjectId(userid)})), mimetype='application/json')
 
-#POSTS's an exercise by passing in JSON body
+#POST's an exercise by passing in JSON body
 #GET's exercise when passing in exercise name in JSON body
 #DELETE's exercise when passing in exercise name in JSON body.
 #TODO: ???
+
 @app.route("/exercises", methods=["POST", "GET"])
 def exercises():
     if request.method == 'GET':
@@ -88,7 +89,7 @@ def exercises():
             "sets": body["sets"],
             "name": body["name"],
             #for now, templateID == name
-            "templateID": body["name"],
+            "templateID": body["templateid"],
             "created": str(datetime.datetime.now())
         }
 
@@ -106,6 +107,50 @@ def exercises():
         exercises.delete_one(deleteExercise)
         return "Deleted " + body["name"] + "."
     '''
+    
+#if wanted to make POST/GET exercise routes specific to users
+'''
+#POST's exercise to specific user
+#GET's exercise for specific user
+@app.route("/users/<userid>/exercises", methods=["POST", "GET"])
+def exercises(userid):
+    if request.method == 'GET':
+        exercises_coll = workout_db['exercises']
+        #print(dumps((exercises_coll.find({}))))
+        #return Response(JSONEncoder().encode(list(logs_coll.find({"_userid": userid, "_date": date}))), mimetype='application/json')
+        return Response(JSONEncoder().encode(list(exercises_coll.find({"_exercise.userid": body[""]}))), mimetype='application/json')
+    elif request.method == 'POST':
+        body = request.get_json()
+        exercises = workout_db['exercises']
+
+        exercise = {
+            "sets": body["sets"],
+            "name": body["name"],
+            #for now, templateID == name
+            "templateID": body["name"],
+            "userid": userid,
+            "created": str(datetime.datetime.now())
+        }
+
+        exercises.insert_one(exercise)
+        return "Done."
+
+#TODO: plan out template route
+#GET's all templates made
+#POST's creates template
+@app.route("/templates", methods=["GET", "POST"])
+def templates():
+    if request.method == 'GET':
+        templates_coll = workout_db['templates']
+        return Response(JSONEncoder().encode(list(templates_coll.find())), mimetype='application/json')
+    elif request.method == 'POST':
+        body = request.get_json()
+        templates = workout_db['templates']
+        template = {
+
+        }
+
+'''
 
 
 #POST specific exercise for a specific user log: provides date, userid, and exercise object
@@ -151,15 +196,19 @@ def get_logs(userid, date):
         return Response(JSONEncoder().encode(list(logs_coll.find({"_userid": userid, "_date": date}))), mimetype='application/json')
 
 #POST is technically a DELETE route, but Android has problems with DELETE. 
-#deletes exercise for specific user at specific log date, takes in exercise "name" as body.
+#deletes exercise for specific user at specific log date, takes in "id" as body, which is the ObjectId.
 #i know route naming sux, not sure what do for now
 @app.route("/users/<userid>/logs/<date>/delete_exercise", methods=["POST"])
 def delete_exercise(userid, date):
     if request.method == 'POST':
         body = request.get_json()
         logs_coll = workout_db['logs']
-        logs_coll.remove({"_userid": userid, "_date": date, "_exercise._id": body["id"]})
-        return "Deleted " + body["name"] + "."
+        exercise_json = logs_coll.find_one({"_userid": userid, "_date": date, "_id": ObjectId(body["id"])})
+        
+        #makes for pretty response message
+        exercise_name = exercise_json['_exercise']['name']
+        logs_coll.remove({"_userid": userid, "_date": date, "_id": ObjectId(body["id"])})
+        return "Deleted " + exercise_name  + "."
 
 #TODO: ask, would final route be /users/<userid>/logs/<date/logsid>/exercises
 #or would it just simply be the user is logged in so it's just: /logs/<date/logsid>/exercises
