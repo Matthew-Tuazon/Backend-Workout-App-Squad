@@ -203,7 +203,7 @@ def delete_exercise(userid, date):
     if request.method == 'POST':
         body = request.get_json()
         logs_coll = workout_db['logs']
-        exercise_json = logs_coll.find_one({"_userid": userid, "_date": date, "_id": ObjectId(body["id"])})
+        exercise_json = logs_coll.find_one({"_userid": userid, "_date": date, "_id": ObjectId(body["_id"])})
         
         #makes for pretty response message
         exercise_name = exercise_json['_exercise']['name']
