@@ -75,7 +75,7 @@ def get_users(userid):
 #DELETE's exercise when passing in exercise name in JSON body.
 #TODO: ???
 
-@app.route("/exercises", methods=["POST", "GET"])
+@app.route("/exercises", methods=["POST", "GET", "DELETE"])
 def exercises():
     if request.method == 'GET':
         exercises_coll = workout_db['exercises']
@@ -98,7 +98,7 @@ def exercises():
 
     #if request method was DELETE (changed to POST route since Android had complications)
     
-    else:
+    elif request.method == 'DELETE':
         body = request.get_json()
         exercises = workout_db['exercises']
         deleteExercise = {
